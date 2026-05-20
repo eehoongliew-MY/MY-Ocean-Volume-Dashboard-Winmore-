@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaysia Ocean Volume — 2025 vs 2026 Winmore</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0B0F13;
+    --surface: #131820;
+    --surface2: #1A2230;
+    --border: rgba(255,255,255,0.07);
+    --border-accent: rgba(255,255,255,0.15);
+    --text: #E8EDF5;
+    --muted: #7A8899;
+    --accent: #3BE8A0;
+    --accent2: #3AAEEB;
+    --accent3: #F5A742;
+    --accent-dim: rgba(59,232,160,0.12);
+    --accent2-dim: rgba(58,174,235,0.12);
+    --red: #F06060;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  html { font-size: 14px; scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 3rem 2.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(59,232,160,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-tag {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .header-tag::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: var(--accent);
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  h1 span { color: var(--accent); }
+  .header-sub {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 12px;
+    max-width: 560px;
+  }
+  .data-source {
+    margin-top: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 10px;
+  }
+
+  /* ── LAYOUT ── */
+  main {
+    padding: 2rem 2.5rem 4rem;
+    max-width: 1400px;
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── KPI CARDS ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  .kpi {
+    background: var(--surface);
+    padding: 1.5rem 1.75rem;
+    position: relative;
+  }
+  .kpi-label {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+  .kpi-value {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .kpi-badge {
+    position: absolute;
+    top: 1.5rem; right: 1.75rem;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+  .badge-green { background: rgba(59,232,160,0.15); color: var(--accent); }
+  .badge-blue  { background: rgba(58,174,235,0.15);  color: var(--accent2); }
+  .badge-amber { background: rgba(245,167,66,0.15);  color: var(--accent3); }
+
+  /* ── OVERVIEW CHART ── */
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.75rem;
+    margin-bottom: 2.5rem;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .chart-title {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .chart-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+  }
+
+  /* ── DRILL-DOWN TABLE ── */
+  .clients-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .client-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .client-row:hover { border-color: var(--border-accent); }
+
+  .client-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .client-header:hover { background: rgba(255,255,255,0.03); }
+
+  .client-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: -0.01em;
+  }
+  .client-id { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .col-val {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+  }
+  .col-val.y25 { color: #7EC8F5; }
+  .col-val.y26 { color: var(--accent); }
+
+  .delta {
+    font-size: 11px;
+    text-align: right;
+    font-weight: 500;
+  }
+  .delta.pos { color: var(--accent); }
+  .delta.neg { color: var(--red); }
+  .delta.neu { color: var(--muted); }
+
+  .expand-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    transition: all 0.15s;
+    justify-self: end;
+  }
+  .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .expand-btn.open { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+  /* port pair table */
+  .port-pairs {
+    display: none;
+    padding: 0 1.5rem 1.25rem;
+    border-top: 1px solid var(--border);
+  }
+  .port-pairs.open { display: block; }
+  .port-pairs-inner {
+    margin-top: 1rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pp-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 80px 80px 80px;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface2);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .pp-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 80px 80px 80px;
+    gap: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .pp-row:last-child { border-bottom: none; }
+  .pp-row:hover { background: rgba(255,255,255,0.025); }
+  .pp-origin { color: var(--accent2); font-weight: 500; }
+  .pp-dest   { color: var(--text); }
+  .pp-gateway { color: var(--muted); font-size: 11px; }
+  .pp-25 { color: #7EC8F5; text-align: right; }
+  .pp-26 { color: var(--accent); text-align: right; font-weight: 500; }
+  .pp-delta { text-align: right; font-size: 11px; }
+  .pp-delta.pos { color: var(--accent); }
+  .pp-delta.neg { color: var(--red); }
+  .pp-delta.new { color: var(--accent3); }
+
+  /* table col headers */
+  .col-headers {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 80px;
+    gap: 12px;
+    padding: 0 1.5rem 8px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .col-headers span:not(:first-child) { text-align: right; }
+
+  /* Bar chart inside drill-down */
+  .mini-chart-wrap {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .mini-chart-label {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* footer */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 700px) {
+    header, main { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .client-header { grid-template-columns: 1fr 70px 70px 60px; }
+    .client-header .delta { display: none; }
+    .pp-header, .pp-row { grid-template-columns: 1fr 1fr 60px 60px; }
+    .pp-gateway, .pp-delta { display: none; }
+    .col-headers { grid-template-columns: 1fr 70px 70px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">Malaysia Origin Intelligence</div>
+  <h1>MY Ocean Volume<br><span>2025 vs 2026</span> Winmore</h1>
+  <p class="header-sub">RFP awarded TEU by client and port pair. Filtered from 2026 Ocean Volume Calculation — TPEB spreadsheet, Winmore tab, Column F (year).</p>
+  <div class="data-source">⬡ Source: Winmore tab · TPEB Contract Year · May–Apr cycle · SEA region · MY origin only</div>
+</header>
+
+<main>
+
+  <!-- KPI ROW -->
+  <div class="section-label" style="margin-bottom:1rem;">Summary</div>
+  <div class="kpi-grid" style="margin-bottom:2.5rem;">
+    <div class="kpi">
+      <div class="kpi-label">2025 MY Awarded</div>
+      <div class="kpi-value" style="color:#7EC8F5;">8,631</div>
+      <div class="kpi-sub">Winmore TEU · prior cycle</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">2026 MY Awarded</div>
+      <div class="kpi-value" style="color:var(--accent);">14,306</div>
+      <div class="kpi-sub">Winmore TEU · current cycle</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">YoY Growth</div>
+      <div class="kpi-value" style="color:var(--accent);">+65.8%</div>
+      <div class="kpi-badge badge-green">↑ Strong</div>
+      <div class="kpi-sub">+5,675 TEU added</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Active Clients</div>
+      <div class="kpi-value">13</div>
+      <div class="kpi-sub">with MY origin lanes</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">NAC Ratio (MY)</div>
+      <div class="kpi-value" style="color:var(--accent2);">69.5%</div>
+      <div class="kpi-badge badge-blue">NAC</div>
+      <div class="kpi-sub">vs APAC avg 43.3%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">YTD Booked</div>
+      <div class="kpi-value" style="color:var(--accent3);">216</div>
+      <div class="kpi-badge badge-amber">1.5%</div>
+      <div class="kpi-sub">NAC 158 · FAK 58</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW CHART -->
+  <div class="section-label">Client overview — awarded TEU</div>
+  <div class="chart-card">
+    <div class="chart-header">
+      <div>
+        <div class="chart-title">2025 vs 2026 Malaysia Origin — All Clients</div>
+        <div class="chart-desc">Winmore + Offline Bid TEU per client · sorted by 2026 volume</div>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-dot" style="background:#7EC8F5;"></span>2025</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#3BE8A0;"></span>2026</div>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:320px;">
+      <canvas id="overviewChart" role="img" aria-label="Grouped bar chart showing 2025 vs 2026 Malaysia Winmore TEU by client">Malaysia origin TEU comparison by client 2025 and 2026.</canvas>
+    </div>
+  </div>
+
+  <!-- DRILL-DOWN TABLE -->
+  <div class="section-label">Client drill-down — port pair detail</div>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:1.25rem;">Click <strong style="color:var(--text);">Expand</strong> on any client to see individual port pair lanes with 2025 vs 2026 volume.</p>
+
+  <div class="col-headers">
+    <span>Client</span>
+    <span>2025 TEU</span>
+    <span>2026 TEU</span>
+    <span>Δ Change</span>
+    <span></span>
+  </div>
+
+  <div class="clients-grid" id="clientsGrid"></div>
+
+</main>
+
+<footer>Malaysia Ocean Volume Dashboard · Winmore Tab · TPEB 2025–2026 · Generated from 2026 Ocean Volume Calculation spreadsheet</footer>
+
+<script>
+const clients = [
+  {
+    name: "The Good Crisp Company",
+    id: "76757",
+    pairs: [
+      { origin:"MYPKG", dest:"USCHI", gateway:"South East Asia → US Inland", y25:1296+720, y26:1080+720+216+504 },
+      { origin:"MYPKG", dest:"USLAX", gateway:"South East Asia → PSW", y25:504, y26:504 },
+      { origin:"MYPKG", dest:"USORF→USCHI", gateway:"South East Asia → EC", y25:720, y26:720 },
+    ]
+  },
+  {
+    name: "PKDC, LLC",
+    id: "68045",
+    pairs: [
+      { origin:"MYPGU", dest:"USDEN", gateway:"South East Asia → PSW", y25:162, y26:162 },
+      { origin:"MYPKG", dest:"USDEN", gateway:"South East Asia → PSW", y25:72, y26:72 },
+      { origin:"MYTPP", dest:"USDEN", gateway:"South East Asia → PSW", y25:124, y26:124 },
+      { origin:"MYPGU", dest:"USMEM", gateway:"South East Asia → PSW", y25:0, y26:0 },
+      { origin:"MYPKG", dest:"USMEM", gateway:"South East Asia → PSW", y25:0, y26:0 },
+    ]
+  },
+  {
+    name: "Zodiac Pool Systems LLC",
+    id: "31566",
+    pairs: [
+      { origin:"MYPGU", dest:"USMEM", gateway:"South East Asia → EC", y25:460, y26:460 },
+      { origin:"MYPKG", dest:"USMEM", gateway:"South East Asia → EC", y25:274, y26:274 },
+      { origin:"MYPGU", dest:"USLAX", gateway:"South East Asia → PSW", y25:213, y26:213 },
+      { origin:"MYTPP", dest:"USMEM", gateway:"South East Asia → EC", y25:152, y26:162 },
+      { origin:"MYPGU", dest:"USLGB", gateway:"South East Asia → PSW", y25:138, y26:138 },
+      { origin:"MYTPP", dest:"USLAX", gateway:"South East Asia → PSW", y25:0, y26:8 },
+      { origin:"MYTPP", dest:"USDAL", gateway:"South East Asia → GULF", y25:0, y26:8 },
+    ]
+  },
+  {
+    name: "VIVO",
+    id: "49687",
+    pairs: [
+      { origin:"MYPKG", dest:"USCHI", gateway:"South East Asia → US Inland", y25:312, y26:178 },
+      { origin:"MYPKG", dest:"USNYC", gateway:"South East Asia → EC", y25:192, y26:192 },
+      { origin:"MYPKG", dest:"USLAX", gateway:"South East Asia → PSW", y25:120, y26:120 },
+      { origin:"MYPKG", dest:"USOAK", gateway:"South East Asia → PSW", y25:96, y26:96 },
+      { origin:"MYPKG", dest:"USDAL", gateway:"South East Asia → GULF", y25:120, y26:120 },
+      { origin:"MYPKG", dest:"USSAV", gateway:"South East Asia → EC", y25:120, y26:120 },
+      { origin:"MYPKG", dest:"CAVAN", gateway:"South East Asia → PNW", y25:0, y26:312 },
+    ]
+  },
+  {
+    name: "Leather Italia USA",
+    id: "40433",
+    pairs: [
+      { origin:"MYPKG", dest:"USLAX", gateway:"South East Asia → PSW", y25:310, y26:310 },
+      { origin:"MYPKG", dest:"USILM", gateway:"South East Asia → EC", y25:270, y26:270 },
+    ]
+  },
+  {
+    name: "Silfab Solar",
+    id: "34143",
+    pairs: [
+      { origin:"MYPKG", dest:"USTIW", gateway:"South East Asia → PNW", y25:350, y26:350 },
+      { origin:"MYPKG", dest:"USCHS", gateway:"South East Asia → EC", y25:300, y26:300 },
+    ]
+  },
+  {
+    name: "GP Batteries",
+    id: "38324",
+    pairs: [
+      { origin:"MYTPP", dest:"USSAV", gateway:"South East Asia → EC", y25:194, y26:194 },
+      { origin:"MYTPP", dest:"USORF", gateway:"South East Asia → EC", y25:263, y26:244+263 },
+    ]
+  },
+  {
+    name: "SECRETLAB",
+    id: "76621",
+    pairs: [
+      { origin:"MYTPP", dest:"USATL", gateway:"South East Asia → EC", y25:226, y26:226 },
+      { origin:"MYPGU", dest:"USLAX", gateway:"South East Asia → PSW", y25:0, y26:8 },
+      { origin:"MYTPP", dest:"USSLC", gateway:"South East Asia → PSW", y25:0, y26:10 },
+    ]
+  },
+  {
+    name: "InnoPak LLC",
+    id: "74414",
+    pairs: [
+      { origin:"MYTPP", dest:"USCMH", gateway:"South East Asia → US Inland", y25:300, y26:252+276 },
+    ]
+  },
+  {
+    name: "Who Gives A Crap Inc",
+    id: "67590",
+    pairs: [
+      { origin:"MYPEN", dest:"USNYC", gateway:"South East Asia → EC", y25:238, y26:238+208+10 },
+      { origin:"MYPEN", dest:"USOAK", gateway:"South East Asia → PSW", y25:168, y26:168+152+12 },
+    ]
+  },
+  {
+    name: "Robert Bosch GmbH",
+    id: "66006",
+    pairs: [
+      { origin:"MYPEN", dest:"USCHS", gateway:"South East Asia → EC", y25:174, y26:174+164 },
+    ]
+  },
+  {
+    name: "RKDS, LLC",
+    id: "22377",
+    pairs: [
+      { origin:"MYTPP", dest:"USCMH", gateway:"South East Asia → US Inland", y25:183, y26:183+181 },
+    ]
+  },
+  {
+    name: "Wholesale Wheel & Tire",
+    id: "51453",
+    pairs: [
+      { origin:"MYPKG", dest:"USDAL", gateway:"South East Asia → GULF", y25:158, y26:158 },
+    ]
+  },
+];
+
+function sum(pairs, yr) {
+  return pairs.reduce((a,p) => a + (p[yr]||0), 0);
+}
+function pct(a,b) {
+  if (!a) return null;
+  return ((b-a)/a*100).toFixed(0);
+}
+function fmtDelta(v25, v26) {
+  if (!v25 && v26) return { txt: 'NEW', cls: 'new' };
+  const d = v26 - v25;
+  if (d === 0) return { txt: '—', cls: 'neu' };
+  const p = pct(v25, v26);
+  return { txt: (d>0?'+':'')+d.toLocaleString()+' ('+p+'%)', cls: d>0?'pos':'neg' };
+}
+
+// Build overview chart
+const sorted = [...clients].sort((a,b) => sum(b.pairs,'y26') - sum(a.pairs,'y26'));
+const labels = sorted.map(c => c.name.length > 22 ? c.name.slice(0,20)+'…' : c.name);
+
+new Chart(document.getElementById('overviewChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: '2025 TEU',
+        data: sorted.map(c => sum(c.pairs,'y25')),
+        backgroundColor: 'rgba(126,200,245,0.65)',
+        borderColor: '#7EC8F5',
+        borderWidth: 0,
+        borderRadius: 3,
+      },
+      {
+        label: '2026 TEU',
+        data: sorted.map(c => sum(c.pairs,'y26')),
+        backgroundColor: 'rgba(59,232,160,0.8)',
+        borderColor: '#3BE8A0',
+        borderWidth: 0,
+        borderRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1A2230',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#E8EDF5',
+        bodyColor: '#7A8899',
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.raw.toLocaleString()} TEU`
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#7A8899', font: { size: 11, family: 'DM Mono' }, maxRotation: 40 },
+        grid: { display: false },
+        border: { color: 'rgba(255,255,255,0.07)' }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#7A8899',
+          font: { size: 11, family: 'DM Mono' },
+          callback: v => v.toLocaleString()
+        },
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        border: { color: 'rgba(255,255,255,0.07)' }
+      }
+    }
+  }
+});
+
+// Build client drill-down rows
+const grid = document.getElementById('clientsGrid');
+
+sorted.forEach((client, idx) => {
+  const tot25 = sum(client.pairs,'y25');
+  const tot26 = sum(client.pairs,'y26');
+  const dlt = fmtDelta(tot25, tot26);
+
+  const row = document.createElement('div');
+  row.className = 'client-row';
+
+  const hdr = document.createElement('div');
+  hdr.className = 'client-header';
+  hdr.innerHTML = `
+    <div>
+      <div class="client-name">${client.name}</div>
+      <div class="client-id">ID ${client.id} · ${client.pairs.length} port pair${client.pairs.length>1?'s':''}</div>
+    </div>
+    <div class="col-val y25">${tot25.toLocaleString()}</div>
+    <div class="col-val y26">${tot26.toLocaleString()}</div>
+    <div class="delta ${dlt.cls}">${dlt.txt}</div>
+    <button class="expand-btn" data-id="${idx}">Expand</button>
+  `;
+
+  const canvasId = `mini_${idx}`;
+  const detail = document.createElement('div');
+  detail.className = 'port-pairs';
+  detail.id = `detail_${idx}`;
+
+  // Port pair table
+  let rows = client.pairs.map(p => {
+    const d = fmtDelta(p.y25, p.y26);
+    return `<div class="pp-row">
+      <div class="pp-origin">${p.origin}</div>
+      <div class="pp-dest">${p.dest}</div>
+      <div class="pp-gateway">${p.gateway}</div>
+      <div class="pp-25">${p.y25 ? p.y25.toLocaleString() : '—'}</div>
+      <div class="pp-26">${p.y26 ? p.y26.toLocaleString() : '—'}</div>
+      <div class="pp-delta ${d.cls}">${d.txt}</div>
+    </div>`;
+  }).join('');
+
+  detail.innerHTML = `
+    <div class="port-pairs-inner">
+      <div class="pp-header">
+        <span>Origin port</span>
+        <span>Destination</span>
+        <span>Gateway</span>
+        <span style="text-align:right">2025</span>
+        <span style="text-align:right">2026</span>
+        <span style="text-align:right">Δ</span>
+      </div>
+      ${rows}
+    </div>
+    <div class="mini-chart-wrap">
+      <div class="mini-chart-label">Port pair volume comparison</div>
+      <div style="position:relative;width:100%;height:${Math.max(client.pairs.length*52+40, 120)}px;">
+        <canvas id="${canvasId}" role="img" aria-label="Bar chart of port pair volumes for ${client.name}">Port pair volume for ${client.name}.</canvas>
+      </div>
+    </div>
+  `;
+
+  row.appendChild(hdr);
+  row.appendChild(detail);
+  grid.appendChild(row);
+
+  // toggle logic
+  hdr.querySelector('.expand-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const btn = e.currentTarget;
+    const panel = document.getElementById(`detail_${idx}`);
+    const isOpen = panel.classList.toggle('open');
+    btn.textContent = isOpen ? 'Collapse' : 'Expand';
+    btn.classList.toggle('open', isOpen);
+
+    if (isOpen && !btn.dataset.charted) {
+      btn.dataset.charted = '1';
+      const portLabels = client.pairs.map(p => p.origin+'→'+p.dest);
+      new Chart(document.getElementById(canvasId), {
+        type: 'bar',
+        indexAxis: 'y',
+        data: {
+          labels: portLabels,
+          datasets: [
+            {
+              label: '2025',
+              data: client.pairs.map(p => p.y25),
+              backgroundColor: 'rgba(126,200,245,0.6)',
+              borderRadius: 3,
+            },
+            {
+              label: '2026',
+              data: client.pairs.map(p => p.y26),
+              backgroundColor: 'rgba(59,232,160,0.75)',
+              borderRadius: 3,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0B0F13',
+              borderColor: 'rgba(255,255,255,0.1)',
+              borderWidth: 1,
+              titleColor: '#E8EDF5',
+              bodyColor: '#7A8899',
+              callbacks: {
+                label: ctx => ` ${ctx.dataset.label}: ${ctx.raw ? ctx.raw.toLocaleString() : '—'} TEU`
+              }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { color: '#7A8899', font: { size: 11, family: 'DM Mono' }, callback: v => v.toLocaleString() },
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              border: { color: 'rgba(255,255,255,0.07)' }
+            },
+            y: {
+              ticks: { color: '#7A8899', font: { size: 11, family: 'DM Mono' } },
+              grid: { display: false },
+              border: { color: 'rgba(255,255,255,0.07)' }
+            }
+          }
+        }
+      });
+    }
+  });
+});
+</script>
+</body>
+</html>
